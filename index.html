@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Rank Tracker</title>
+  <!-- Link to Google Fonts for updated fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* General Reset and Font Styling */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #121212; /* Black background */
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.8); 
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #00e5ff; /* Light blue color */
+    }
+
+    h2, h3 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    label {
+      font-size: 1rem;
+      margin-top: 15px;
+      color: #ddd;
+      display: block;
+      text-align: left;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      box-sizing: border-box;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      outline: none;
+    }
+
+    /* Button Styling */
+    button {
+      background: linear-gradient(45deg, #2575fc, #6a11cb); /* Blue to Purple gradient */
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #6a11cb, #2575fc);
+    }
+
+    button:focus {
+      border: 2px solid #00bcd4;
+    }
+
+    #calculatedExp {
+      font-weight: bold;
+      color: #00e5ff;
+    }
+
+    .userList {
+      margin-top: 20px;
+      font-size: 1rem;
+      color: #ddd;
+      text-align: left;
+      padding-left: 0;
+    }
+
+    .userItem {
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .userItem:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .rankDisplay {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+
+    /* Subtle Animations */
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* Mobile specific styles */
+    @media (max-width: 600px) {
+      .container {
+        padding: 25px;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      label, input, select, button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+
+      h2, h3 {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Study Rank Tracker</h1>
+    
+    <!-- Username input section -->
+    <label for="username">Enter Username:</label>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="addUsername()">Add Username</button>
+
+    <!-- Select or Remove Username section -->
+    <label for="usernameSelect">Select or Remove Username:</label>
+    <select id="usernameSelect">
+      <option value="">Select a user or remove a user</option>
+    </select>
+
+    <!-- Action button for Confirm or Remove -->
+    <button onclick="selectOrRemoveUsername()">Confirm/Remove User</button>
+
+    <!-- Study Hours and Minutes input -->
+    <label for="hours">Enter Hours:</label>
+    <input type="number" id="hours" placeholder="Enter hours" min="0">
+
+    <label for="minutes">Enter Minutes:</label>
+    <input type="number" id="minutes" placeholder="Enter minutes" min="0" max="59">
+
+    <!-- Confirm EXP button -->
+    <button onclick="confirmEXP()">Confirm EXP</button>
+
+    <h2>Calculated EXP: <span id="calculatedExp">0</span></h2>
+
+    <!-- Manual EXP input -->
+    <label for="manualExp">Manual EXP Update:</label>
+    <input type="number" id="manualExp" placeholder="Enter EXP to add" min="0">
+    <button onclick="manualUpdateEXP()">Add EXP</button>
+
+    <!-- Remove EXP input -->
+    <label for="removeExp">Remove EXP:</label>
+    <input type="number" id="removeExp" placeholder="Enter EXP to remove" min="0">
+    <button onclick="removeEXP()">Remove EXP</button>
+
+    <!-- Update Rank button -->
+    <button onclick="updateRank()">Update Rank</button>
+
+    <!-- User rank display -->
+    <h3>User Ranks:</h3>
+    <div id="userList" class="userList"></div>
+  </div>
+
+  <script>
+    // Ranks based on EXP thresholds
+    const rankLevels = [
+      { shortName: "BRN", name: "Learner (LR)", exp: 0 },
+      { shortName: "NV", name: "Novice (NV)", exp: 25 },
+      { shortName: "JS", name: "Junior Scholar (JS)", exp: 50 },
+      { shortName: "AE", name: "Academic Explorer (AE)", exp: 90 },
+      { shortName: "KS", name: "Knowledge Seeker (KS)", exp: 130 },
+      { shortName: "SE", name: "Study Enthusiast (SE)", exp: 170 },
+      { shortName: "SS", name: "Senior Scholar (SS)", exp: 220 },
+      { shortName: "KE", name: "Knowledge Expert (KE)", exp: 270 },
+      { shortName: "AM", name: "Academic Master (AM)", exp: 320 },
+      { shortName: "TA", name: "Top Achiever (TA)", exp: 380 },
+      { shortName: "HS", name: "Honor Student (HS)", exp: 440 },
+      { shortName: "VL", name: "Valedictorian (VL)", exp: 500 }
+    ];
+
+    // Load data from localStorage
+    let userData = JSON.parse(localStorage.getItem('userData')) || {};
+
+    // Add a new username
+    function addUsername() {
+      const username = document.getElementById('username').value.trim();
+      if (username && !userData[username]) {
+        userData[username] = { exp: 0, rank: "BRN", dailyEXP: 0 };
+        updateUsernameSelect();
+        alert(`${username} has been added!`);
+        saveData();
+      } else if (!username) {
+        alert("Please enter a valid username.");
+      } else {
+        alert("Username already exists.");
+      }
+    }
+
+    // Update the dropdown list of usernames
+    function updateUsernameSelect() {
+      const select = document.getElementById('usernameSelect');
+      select.innerHTML = '<option value="">Select a user or remove a user</option>';
+      for (const username in userData) {
+        const option = document.createElement('option');
+        option.value = username;
+        option.textContent = username;
+        select.appendChild(option);
+      }
+      displayUserList();
+    }
+
+    // Select or remove a username
+    function selectOrRemoveUsername() {
+      const username = document.getElementById('usernameSelect').value;
+      if (!username) {
+        alert("Please select a user.");
+        return;
+      }
+
+      // Remove user if selected
+      if (confirm("Do you want to remove this user?")) {
+        delete userData[username];
+        updateUsernameSelect();
+        alert(`${username} has been removed.`);
+        saveData();
+      }
+    }
+
+    // Calculate EXP based on hours and minutes for the selected user
+    function confirmEXP() {
+      const username = document.getElementById('usernameSelect').value;
+      if (!username) {
+        alert("Please select a user.");
+        return;
+      }
+
+      let hours = parseInt(document.getElementById('hours').value) || 0;
+      let minutes = parseInt(document.getElementById('minutes').value) || 0;
+
+      let exp = hours * 2;
+      if (hours >= 10) exp += 5; // Bonus for 10+ hours in a day
+
+      if (minutes >= 20 && minutes <= 30) exp += 0.25;
+      else if (minutes >= 31 && minutes <= 40) exp += 0.75;
+      else if (minutes >= 41 && minutes <= 50) exp += 0.85;
+
+      // Add the calculated EXP to dailyEXP for the user
+      userData[username].dailyEXP += exp;
+
+      // Store the calculated EXP in temporary variable
+      document.getElementById('calculatedExp').textContent = userData[username].dailyEXP.toFixed(2);
+    }
+
+    // Manual EXP update
+    function manualUpdateEXP() {
+      const username = document.getElementById('usernameSelect').value;
+      if (!username) {
+        alert("Please select a user.");
+        return;
+      }
+
+      const manualExp = parseFloat(document.getElementById('manualExp').value) || 0;
+
+      if (manualExp > 0) {
+        userData[username].exp += manualExp;  // Add manual EXP to total EXP
+        alert(`${manualExp} EXP added to ${username}'s total.`);
+        saveData();
+        displayUserList();
+      } else {
+        alert("Please enter a valid EXP value.");
+      }
+    }
+
+    // Remove EXP
+    function removeEXP() {
+      const username = document.getElementById('usernameSelect').value;
+      if (!username) {
+        alert("Please select a user.");
+        return;
+      }
+
+      const removeExp = parseFloat(document.getElementById('removeExp').value) || 0;
+
+      if (removeExp > 0 && userData[username].exp >= removeExp) {
+        userData[username].exp -= removeExp;  // Subtract EXP from total EXP
+        alert(`${removeExp} EXP removed from ${username}'s total.`);
+        saveData();
+        displayUserList();
+      } else {
+        alert("Please enter a valid EXP value to remove.");
+      }
+    }
+
+    // Update rank based on EXP
+    function updateRank() {
+      const username = document.getElementById('usernameSelect').value;
+      if (!username) {
+        alert("Please select a user.");
+        return;
+      }
+
+      let exp = userData[username].exp;
+      let rank = rankLevels.find(level => exp >= level.exp);
+      if (rank) {
+        userData[username].rank = rank.shortName;
+        alert(`${username} has reached the rank: ${rank.name}`);
+        saveData();
+        displayUserList();
+      }
+    }
+
+    // Save data to localStorage
+    function saveData() {
+      localStorage.setItem('userData', JSON.stringify(userData));
+    }
+
+    // Display the list of users and their ranks
+    function displayUserList() {
+      const userListDiv = document.getElementById('userList');
+      userListDiv.innerHTML = '';
+      for (const username in userData) {
+        const userItem = document.createElement('div');
+        userItem.classList.add('userItem');
+        userItem.innerHTML = `
+          <span>${username} - Rank: ${userData[username].rank}</span>
+          <span>EXP: ${userData[username].exp}</span>
+        `;
+        userListDiv.appendChild(userItem);
+      }
+    }
+
+    // Initialize with saved data
+    updateUsernameSelect();
+  </script>
+</body>
+</html>
